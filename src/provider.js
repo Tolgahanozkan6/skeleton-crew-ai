@@ -1,3 +1,4 @@
+import { OllamaAdapter } from './ollama-provider.js';
 /**
  * Provider adapter layer (T5).
  *
@@ -209,6 +210,8 @@ export function createProvider(config = {}) {
     return new OfflineAdapter();
   }
 
+  const provider = config.provider ?? process.env.CREW_PROVIDER ?? (config.apiKey ? 'openai' : 'ollama');
+  if (provider === 'ollama') return new OllamaAdapter(config.model || process.env.CREW_MODEL || 'qwen3:1.7b');
   const apiKey = config.apiKey ?? process.env.CREW_API_KEY;
   if (!apiKey) {
     throw new Error(

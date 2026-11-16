@@ -78,3 +78,7 @@ T7 partial work complete. All remaining blockers require user action (see table 
 ## Integration update — Codex, 2026-11-16
 
 Connected JsonStore to normal web startup and added optional .env loading. Connected live provider execution for both domains with per-run adapters, three-step budgets, field validation, sanitized failures and mode labels. Added restart persistence and stubbed live HTTP integration tests. Local JSON remains single-process; real provider credentials and browser acceptance remain unverified. Earlier integration-gap notes are superseded by this update.
+
+## Free local AI setup
+
+Added Ollama loopback-only provider with schema-constrained local responses, three-call budget and a separate 120-second local timeout. Added start:free launcher and local adapter tests. No paid account or API key is required. Installation and real-model verification are tracked by the current Codex session. Cloud mode remains optional and explicitly configured.

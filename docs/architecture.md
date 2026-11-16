@@ -28,3 +28,7 @@ Start with an injectable in-memory store; add atomic local JSON persistence unde
 Provider interface (planned): `generate({role,input,context,signal})` returns validated structured output. Deterministic fixtures are the default adapter; a real provider will be chosen and documented in T5. Limit request to 4,000 characters, bound output size, timeout each live call after 15 seconds and cap a run at three specialist calls with no automatic retries initially. Treat user/model text as data, not tool instructions. Invalid outputs/timeouts fail the run and disable approval. Do not silently substitute offline output for a failed live call.
 
 Tests must cover both apps, validation, step failure, provider schema rejection/timeouts, review conflicts, persistence reload and secret-free logs. Avoid full input/output logging. Store only synthetic demo data by default.
+
+## Local AI provider
+
+Ollama is the recommended free runtime, listening on loopback only. Its chat endpoint uses non-streaming schema-constrained responses; the application independently validates domain fields. Each local call has a 120-second timeout (the cloud adapter retains 15 seconds); each run has at most three calls and no retries. This supersedes the earlier universal 15-second timeout proposal for local inference. Local inference requires the laptop and model service to be running; public offline demos remain independent.

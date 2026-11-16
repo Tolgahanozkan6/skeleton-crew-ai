@@ -25,11 +25,21 @@ npm run start:web
 
 The web server binds to `127.0.0.1` only. No install step or `.env` file is required for offline mode.
 
-### Live AI mode (optional, T5)
+### Free local AI (recommended)
 
-The web server loads an optional `.env` file at startup. Copy `.env.example` to `.env`, set `CREW_MODE=live`, `CREW_PROVIDER=openai`, `CREW_MODEL=gpt-4o-mini` and your own `CREW_API_KEY`, then restart. Do not share or commit your key. Existing shell environment values take precedence. Each live run makes at most three specialist calls, with a 15-second timeout per call. Live runs may incur provider charges. Without a key, stay in offline-demo mode.
+Use Ollama locally with `qwen3:1.7b`. No API key or cloud account is required. Install [Ollama](https://ollama.com/download), run `ollama pull qwen3:1.7b` once, then use:
 
-Both apps use domain-specific output validation before enabling review. Live failures are explicit and never silently switch to offline results. Real provider/account access has not yet been verified. API format reference: [official OpenAI documentation](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+```sh
+npm run start:free
+```
+
+This starts the local model service if needed and enables AI for both apps. The installer prepared in this workspace uses `../ollama-runtime/ollama` and `../ollama-models`; a fresh checkout can use a normal Ollama installation. Local model calls go only to `127.0.0.1:11434`. Each run has at most three calls; local calls time out after 120 seconds to allow model loading. Small local models can make mistakes: review every draft. No messages, bookings or payments are sent.
+
+For the fastest deterministic demo without a model, run `npm run start:web` with `CREW_MODE=offline-demo` (the default). This is also the portable mode for a public demonstration that cannot access your laptop's model.
+
+The optional paid OpenAI adapter remains available only if explicitly configured with `CREW_PROVIDER=openai`, `CREW_MODE=live` and a key; it is not needed for this project. No key has been configured by this setup.
+
+References: [Ollama chat API](https://docs.ollama.com/api/chat), [model and license](https://ollama.com/library/qwen3:1.7b).
 
 ### Data location
 

@@ -39,7 +39,7 @@ test('live: createProvider without key throws immediately', () => {
   const saved = process.env.CREW_API_KEY;
   delete process.env.CREW_API_KEY;
   try {
-    assert.throws(() => createProvider({ mode: 'live' }), /CREW_API_KEY/);
+    assert.throws(() => createProvider({ mode: 'live', provider: 'openai' }), /CREW_API_KEY/);
   } finally {
     if (saved !== undefined) process.env.CREW_API_KEY = saved;
   }
@@ -74,7 +74,7 @@ function goodFetchStub(output) {
 
 test('live: exhausts budget after CALL_BUDGET calls and throws', async () => {
   await withStubFetch(goodFetchStub({ summary: 'ok', draft: 'ok', status: 'live' }), async () => {
-    const p = createProvider({ mode: 'live', apiKey: 'test-key' });
+    const p = createProvider({ mode: 'live', provider: 'openai', apiKey: 'test-key' });
     for (let i = 0; i < CALL_BUDGET; i++) {
       await p.generate({ role: 'triage', input: 'test' });
     }
@@ -101,7 +101,7 @@ test('live: timeout produces explicit error', async () => {
   _setTimeoutMsForTest(50); // 50 ms so the test doesn't take 15 s
   try {
     await withStubFetch(hangingFetch, async () => {
-      const p = createProvider({ mode: 'live', apiKey: 'test-key' });
+      const p = createProvider({ mode: 'live', provider: 'openai', apiKey: 'test-key' });
       await assert.rejects(
         () => p.generate({ role: 'triage', input: 'test' }),
         /timed out|aborted|abort/i
@@ -122,7 +122,7 @@ test('live: malformed response JSON throws TypeError', async () => {
   });
 
   await withStubFetch(malformedFetch, async () => {
-    const p = createProvider({ mode: 'live', apiKey: 'test-key' });
+    const p = createProvider({ mode: 'live', provider: 'openai', apiKey: 'test-key' });
     await assert.rejects(
       () => p.generate({ role: 'triage', input: 'test' }),
       /malformed JSON/i
@@ -136,7 +136,7 @@ test('live: HTTP error status throws explicit error', async () => {
   const errorFetch = async () => ({ ok: false, status: 429, json: async () => ({}) });
 
   await withStubFetch(errorFetch, async () => {
-    const p = createProvider({ mode: 'live', apiKey: 'test-key' });
+    const p = createProvider({ mode: 'live', provider: 'openai', apiKey: 'test-key' });
     await assert.rejects(
       () => p.generate({ role: 'triage', input: 'test' }),
       /HTTP 429/
@@ -156,7 +156,7 @@ test('live: missing output field in provider response throws', async () => {
   });
 
   await withStubFetch(badOutputFetch, async () => {
-    const p = createProvider({ mode: 'live', apiKey: 'test-key' });
+    const p = createProvider({ mode: 'live', provider: 'openai', apiKey: 'test-key' });
     await assert.rejects(
       () => p.generate({ role: 'triage', input: 'test' }),
       TypeError
@@ -190,7 +190,7 @@ test('live: API key does not appear in thrown error messages', async () => {
   const errorFetch = async () => ({ ok: false, status: 401, json: async () => ({}) });
 
   await withStubFetch(errorFetch, async () => {
-    const p = createProvider({ mode: 'live', apiKey: secretKey });
+    const p = createProvider({ mode: 'live', provider: 'openai', apiKey: secretKey });
     try {
       await p.generate({ role: 'triage', input: 'test' });
       assert.fail('should have thrown');

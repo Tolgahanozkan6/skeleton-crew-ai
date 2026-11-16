@@ -42,6 +42,8 @@ test('HTTP live mode reaches provider and stores domain output without network',
   const outputs = runSupport('Refund order #12').outputs;
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.CREW_API_KEY;
+  const originalProvider = process.env.CREW_PROVIDER;
+  process.env.CREW_PROVIDER = 'openai';
   let calls = 0;
   process.env.CREW_API_KEY = 'test-only-key';
   globalThis.fetch = async (url, options) => {
@@ -65,6 +67,8 @@ test('HTTP live mode reaches provider and stores domain output without network',
     assert.equal(calls, 3);
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalProvider === undefined) delete process.env.CREW_PROVIDER;
+    else process.env.CREW_PROVIDER = originalProvider;
     if (originalKey === undefined) delete process.env.CREW_API_KEY;
     else process.env.CREW_API_KEY = originalKey;
     await new Promise(resolve => server.close(resolve));

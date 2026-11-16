@@ -39,7 +39,7 @@ export async function executeLiveRun(appId, request, factory = createProvider) {
     return { mode: 'live', status: 'awaiting_human_review', outputs, trace };
   } catch {
     // Do not expose provider text or configuration secrets to clients/logs.
-    const error = 'Live workflow failed. Check server configuration or retry later.';
+    const error = process.env.CREW_PROVIDER === 'ollama' ? 'Local AI unavailable or invalid response. Start Ollama and ensure the model is installed; no cloud service was used.' : 'Live workflow failed. Check server configuration or retry later.';
     trace.push({ agent: current, status: 'failed', error });
     return { mode: 'live', status: 'failed', outputs: {}, trace, error };
   }
