@@ -149,7 +149,7 @@ export function supportPage() {
   function renderResult(run) {
     resultCard.hidden = false;
     const badge = document.getElementById('run-status-badge');
-    safeText(badge, run.status.replace(/_/g, ' '));
+    safeText(badge, run.mode + ' · ' + run.status.replace(/_/g, ' '));
     badge.className = 'status-badge status-' + run.status;
 
     const triage = run.outputs?.triage || {};

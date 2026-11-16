@@ -27,15 +27,17 @@ The web server binds to `127.0.0.1` only. No install step or `.env` file is requ
 
 ### Live AI mode (optional, T5)
 
-The provider adapter exists in `src/provider.js`, but is not connected to web workflows. The server does not load `.env`; setting a key alone does not enable live AI. Browser workflows remain deterministic offline demos. Live integration and domain schema validation are pending.
+The web server loads an optional `.env` file at startup. Copy `.env.example` to `.env`, set `CREW_MODE=live`, `CREW_PROVIDER=openai`, `CREW_MODEL=gpt-4o-mini` and your own `CREW_API_KEY`, then restart. Do not share or commit your key. Existing shell environment values take precedence. Each live run makes at most three specialist calls, with a 15-second timeout per call. Live runs may incur provider charges. Without a key, stay in offline-demo mode.
+
+Both apps use domain-specific output validation before enabling review. Live failures are explicit and never silently switch to offline results. Real provider/account access has not yet been verified. API format reference: [official OpenAI documentation](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
 
 ### Data location
 
-Run history is stored in memory by default. The `JsonStore` adapter writes to `data/runs.json` (gitignored). The server does not currently use this adapter. Back up data before any manual migration or reset.
+The web server persists runs and reviews in `data/runs.json` (gitignored). Set `CREW_DATA_FILE` to change the location. A restart preserves records. Corrupt or unsupported files stop startup instead of being overwritten; back up and repair them. Only run one server process per data file.
 
 ### Known limitations
 
-- Run history resets on server restart (MemoryStore used by default in `src/server.js`).
+- Persistent storage is local and single-process; a hosting platform needs a persistent writable disk.
 - No multi-user or multi-process guarantees on the JSON store.
 - Live AI is optional; all offline tests pass without any credentials.
 - Browser keyboard and narrow-screen checks require manual verification (automated tests cover HTTP routes).
@@ -74,7 +76,7 @@ This repository is a reusable small-business workflow skeleton. Two distinct CLI
 | Support Desk | Online shop owner | Customer question → triage, reply, review checklist | `npm run demo:support` |
 | Job Planner | Local service business | Job request → scope, work plan, customer questions | `npm run demo:planner` |
 
-Both are deterministic offline demonstrations, not live model agents. The two application folders are `apps/support-desk/` and `apps/job-planner/`. Local web interfaces and review APIs exist; persistent web history, live integration, browser acceptance checks and deployment remain pending.
+Both are deterministic offline demonstrations, not live model agents. The two application folders are `apps/support-desk/` and `apps/job-planner/`. Local web interfaces and review APIs exist; persistent web history and live integration are implemented; real-provider validation, browser acceptance checks and deployment remain pending.
 
 ```sh
 git clone https://github.com/Tolgahanozkan6/skeleton-crew-ai.git
@@ -85,7 +87,7 @@ npm run demo:support
 npm run demo:planner
 ```
 
-No install step or `.env` copy is required for these dependency-free demos. The existing `npm start` remains available. `.env.example` documents future settings; no code currently loads them.
+No install step or `.env` copy is required for these dependency-free demos. The existing `npm start` remains available. The web entry point loads optional `.env` settings; CLI demos remain offline.
 
 ## Build next
 

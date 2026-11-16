@@ -147,7 +147,7 @@ export function plannerPage() {
   function renderResult(run) {
     resultCard.hidden = false;
     const badge = document.getElementById('run-status-badge');
-    badge.textContent = run.status.replace(/_/g, ' ');
+    badge.textContent = run.mode + ' · ' + run.status.replace(/_/g, ' ');
     badge.className = 'status-badge status-' + run.status;
 
     const scope = run.outputs?.scope || {};

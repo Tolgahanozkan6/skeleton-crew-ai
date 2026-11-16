@@ -74,3 +74,7 @@ T7 partial work complete. All remaining blockers require user action (see table 
 ## Independent review — Codex, 2026-11-16
 
 107/107 tests and all three CLI demos independently passed. Earlier completion statements reflect the Kiro report. Inspection found MemoryStore-only web history and an unconnected live provider adapter. The web server does not load .env; setting a key alone cannot activate live inference. T4/T5/T6 acceptance reopened for missing integration/verification. GitHub publication and CI verification are handled by Codex; they are not inherently user-only tasks.
+
+## Integration update — Codex, 2026-11-16
+
+Connected JsonStore to normal web startup and added optional .env loading. Connected live provider execution for both domains with per-run adapters, three-step budgets, field validation, sanitized failures and mode labels. Added restart persistence and stubbed live HTTP integration tests. Local JSON remains single-process; real provider credentials and browser acceptance remain unverified. Earlier integration-gap notes are superseded by this update.

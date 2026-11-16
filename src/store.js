@@ -140,7 +140,17 @@ export class JsonStore {
       );
     }
     const map = new Map();
-    for (const run of parsed.runs) map.set(run.id, run);
+    for (const run of parsed.runs) {
+      if (!run || typeof run.id !== 'string' || map.has(run.id) ||
+          !['support-desk', 'job-planner'].includes(run.appId) ||
+          !['offline-demo', 'live'].includes(run.mode) ||
+          !['awaiting_human_review', 'approved', 'rejected', 'failed'].includes(run.status) ||
+          !Number.isInteger(run.version) || run.version < 1 ||
+          !run.outputs || typeof run.outputs !== 'object' || !Array.isArray(run.trace)) {
+        throw new Error('Store contains an invalid run record');
+      }
+      map.set(run.id, run);
+    }
     return map;
   }
 
@@ -165,7 +175,7 @@ export class JsonStore {
         : 'awaiting_human_review';
     const run = makeRun(appId, mode, outputs, trace, status);
     this.#runs.set(run.id, run);
-    this.#save();
+    try { this.#save(); } catch (error) { this.#runs.delete(run.id); throw error; }
     return run;
   }
 
@@ -182,7 +192,7 @@ export class JsonStore {
     if (!run) throw new TypeError(`Run not found: ${id}`);
     const updated = applyReview(run, decision, editedDraft, expectedVersion);
     this.#runs.set(id, updated);
-    this.#save();
+    try { this.#save(); } catch (error) { this.#runs.set(id, run); throw error; }
     return updated;
   }
 }

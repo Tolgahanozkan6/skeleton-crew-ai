@@ -15,13 +15,14 @@
 import { createServer } from 'node:http';
 import { runSupport } from '../apps/support-desk/workflow.js';
 import { runPlanner } from '../apps/job-planner/workflow.js';
-import { MemoryStore } from './store.js';
+import { MemoryStore, JsonStore } from './store.js';
+import { executeLiveRun } from './live-workflow.js';
 import { validateRequest, validateAppId } from './contracts.js';
 import { supportPage } from './ui/support-page.js';
 import { plannerPage } from './ui/planner-page.js';
 
 const MAX_BODY = 16_384; // 16 KB request body limit
-const store = new MemoryStore();
+let store = new MemoryStore();
 
 // ── request body reader ───────────────────────────────────────────────────────
 
@@ -94,13 +95,17 @@ async function handleCreateRun(req, res) {
 
   let appId, text;
   try {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new TypeError('Expected an object');
+    if (body.mode !== undefined && !['offline-demo', 'live'].includes(body.mode)) throw new TypeError('Unknown mode');
     appId = validateAppId(body.appId);
     text = validateRequest(body.request);
   } catch (err) {
     return json(res, 400, { error: err.message });
   }
 
-  const result = executeRun(appId, text);
+  const mode = body.mode ?? process.env.CREW_MODE ?? 'offline-demo';
+  if (!['offline-demo', 'live'].includes(mode)) return json(res, 400, { error: 'Unknown mode' });
+  const result = mode === 'live' ? await executeLiveRun(appId, text) : executeRun(appId, text);
   const run = store.createRun(appId, result.mode, result.outputs, result.trace);
   return json(res, 201, run);
 }
@@ -162,7 +167,9 @@ export async function handleRequest(req, res) {
 
 // ── entry point ───────────────────────────────────────────────────────────────
 
-export function startServer(port = 3000) {
+export function startServer(port = 3000, options = {}) {
+  if (options.store) store = options.store;
+  else if (port !== 0) store = new JsonStore(process.env.CREW_DATA_FILE || 'data/runs.json');
   const server = createServer((req, res) => {
     handleRequest(req, res).catch((err) => {
       console.error('Unhandled server error:', err);

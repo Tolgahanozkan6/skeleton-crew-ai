@@ -22,3 +22,7 @@ Implementation status below is subject to the independent review follow-up.
 - T4 HTTP tests pass; keyboard/narrow-screen browser checks remain unverified.
 - T5 adapter is not used by workflows; start:web does not load .env. Complete live integration and domain schema validation.
 - T6 local tests and demos verified by Codex: 107/107 pass. Remote CI pending publication; clean-checkout acceptance remains to be verified.
+
+## Integration follow-up
+
+JsonStore is now wired to web startup; restart persistence is integration-tested. Both domain workflows now connect to the provider with validated outputs, .env loading and visible result mode. Stubbed live HTTP tests verify routing without real API requests. Real provider access, visual/keyboard acceptance and deployment are still open; T4/T5 remain unchecked until those checks complete.
