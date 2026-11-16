@@ -4,3 +4,9 @@ node_modules/
 !.env.example
 coverage/
 .DS_Store
+
+# Local run storage, logs and generated output
+data/
+*.log
+dist/
+# Keep root .kiro steering/specs tracked.
