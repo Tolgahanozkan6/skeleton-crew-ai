@@ -3,11 +3,12 @@ import { runWorkflow } from '../../src/runtime.js';
 // ── scope step ───────────────────────────────────────────────────────────────
 // Classifies the job and flags when essential facts are missing.
 function scopeStep(text) {
-  const isRepair = /repair|broken|fix|fault|leak|damage/i.test(text);
-  const isInstall = /install|fit|set.?up|mount/i.test(text);
-  const isUrgent = /urgent|asap|emergency|immediately/i.test(text);
-  const hasLocation = /at\s+\w|office|shop|site|address|floor|unit\s+\d/i.test(text);
-  const hasSize = /\d+\s*(m²|sqm|sq\.?\s*ft|rooms?|floors?)/i.test(text);
+  const matchText = text.replace(/[İı]/g, 'i');
+  const isRepair = /repair|broken|fix|fault|leak|damage|tamir|bozul|kırık|kirik|sızıntı|sizinti/i.test(matchText);
+  const isInstall = /install|fit|set.?up|mount|kurulum|montaj/i.test(matchText);
+  const isUrgent = /urgent|asap|emergency|immediately|acil|hemen/i.test(matchText);
+  const hasLocation = /at\s+\w|office|shop|site|address|floor|unit\s+\d/i.test(matchText);
+  const hasSize = /\d+\s*(m²|sqm|sq\.?\s*ft|rooms?|floors?)/i.test(matchText);
 
   const service = isRepair
     ? 'repair-assessment'

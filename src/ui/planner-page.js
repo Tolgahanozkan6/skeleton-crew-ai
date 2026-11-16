@@ -242,6 +242,16 @@ export function plannerPage() {
         timeSpan.style.color = '#6c757d';
         timeSpan.textContent = new Date(r.createdAt).toLocaleTimeString();
         row.append(idSpan, statusSpan, timeSpan);
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.textContent = 'Open';
+        open.setAttribute('aria-label', 'Open run ' + r.id.slice(0, 8));
+        open.addEventListener('click', () => {
+          currentRun = r;
+          renderResult(r);
+          resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        row.appendChild(open);
         container.appendChild(row);
       });
     } catch { /* ignore */ }

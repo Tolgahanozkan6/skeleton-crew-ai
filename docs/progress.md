@@ -86,3 +86,7 @@ Added Ollama loopback-only provider with schema-constrained local responses, thr
 ### Real local-model verification
 
 Installed Ollama 0.40.16 in the workspace and downloaded qwen3:1.7b. Both Turkish end-to-end requests completed through the real local model with awaiting_human_review status (Support Desk 41.6 seconds; Job Planner 48.5 seconds). No API key or cloud inference was used. Small-model quality limitations observed: an urgent classification was overly eager and a repair was classified as general; role prompts were tightened for these cases. This is functional integration evidence, not a quality guarantee. Human review remains required.
+
+## Acceptance and public demo — Codex, 2026-11-16
+
+117 tests passed. Added history reopening, saved edited-draft restoration, Turkish classification regressions and mobile wrapping. Verified Support Desk create/edit/approve/reload/open and planner Turkish urgent repair, mobile width, keyboard empty-input behavior. Published public browser-only demo through Sites and exercised the hosted planner sample. See docs/quality-checks.md and docs/release-links.md. Public generation script reuses the same workflows/UI without copying customer data or model weights. Local AI remains separate. Submission description and timed video plan updated; no video upload or personal eligibility declaration has been made.

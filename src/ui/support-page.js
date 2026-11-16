@@ -163,7 +163,7 @@ export function supportPage() {
     missList.innerHTML = '';
     missing.forEach(f => { const li = document.createElement('li'); li.textContent = f; missList.appendChild(li); });
 
-    const draft = run.outputs?.reply?.draft || '';
+    const draft = run.review?.editedDraft ?? run.outputs?.reply?.draft ?? '';
     document.getElementById('draft-edit').value = draft;
 
     const checklist = run.outputs?.operations?.checklist || [];
@@ -240,6 +240,16 @@ export function supportPage() {
         timeSpan.style.color = '#6c757d';
         timeSpan.textContent = new Date(r.createdAt).toLocaleTimeString();
         row.append(idSpan, appSpan, statusSpan, timeSpan);
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.textContent = 'Open';
+        open.setAttribute('aria-label', 'Open run ' + r.id.slice(0, 8));
+        open.addEventListener('click', () => {
+          currentRun = r;
+          renderResult(r);
+          resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        row.appendChild(open);
         container.appendChild(row);
       });
     } catch { /* ignore */ }

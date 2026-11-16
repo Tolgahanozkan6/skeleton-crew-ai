@@ -26,3 +26,7 @@ Implementation status below is subject to the independent review follow-up.
 ## Integration follow-up
 
 JsonStore is now wired to web startup; restart persistence is integration-tested. Both domain workflows now connect to the provider with validated outputs, .env loading and visible result mode. Stubbed live HTTP tests verify routing without real API requests. Real provider access, visual/keyboard acceptance and deployment are still open; T4/T5 remain unchecked until those checks complete.
+
+## Acceptance follow-up — 2026-11-16
+
+Focused browser checks and public demo publication are recorded in docs/quality-checks.md and docs/release-links.md. Real local AI was exercised; public demo is explicitly deterministic. 117 tests pass. Actual video upload, personal eligibility/ownership review and final Devpost entry remain open. These follow-ups were done in Codex; do not attribute them to Kiro.

@@ -15,6 +15,10 @@ export function pageShell({ title, appId, navActive, body }) {
     *, *::before, *::after { box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; margin: 0; background: #f8f9fa; color: #212529; }
     header { background: #1a1a2e; color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; }
+    header { flex-wrap: wrap; }
+    nav { display: flex; flex-wrap: wrap; gap: .25rem; }
+    .history-row { flex-wrap: wrap; overflow-wrap: anywhere; }
+    main, .card, section { min-width: 0; overflow-wrap: anywhere; }
     header h1 { margin: 0; font-size: 1.1rem; }
     nav a { color: #adb5bd; text-decoration: none; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.95rem; }
     nav a[aria-current="page"] { background: #e9ecef; color: #1a1a2e; font-weight: 600; }

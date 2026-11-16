@@ -104,3 +104,7 @@ No install step or `.env` copy is required for these dependency-free demos. The 
 Read [product scope](docs/product-scope.md), [architecture](docs/architecture.md), [development plan](docs/development-plan.md) and [competition checklist](docs/competition.md). Continue the open integration checks in `.kiro/specs/two-app-mvp/tasks.md`. Existing workflow specs remain valid for the legacy demo.
 
 Competition conditions were checked on 2026-11-16; see the linked checklist for sources and remaining eligibility checks. This starter is not a completed submission. File preparation here does not prove that development used Kiro. Record actual Kiro work in [the evidence log](docs/kiro-usage.md).
+
+## Public browser-only demo
+
+Generate the shareable deterministic version with `node scripts/build-public-demo.mjs`. It reuses the same workflow functions and UI, with a browser-local history/review adapter. Output is in `dist/public-demo/`; host it as static files. It never calls an AI provider. See [release links](docs/release-links.md), [quality checks](docs/quality-checks.md) and [submission draft](docs/submission.md).

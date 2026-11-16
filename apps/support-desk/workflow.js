@@ -3,12 +3,13 @@ import { runWorkflow } from '../../src/runtime.js';
 // ── triage step ──────────────────────────────────────────────────────────────
 // Classifies the request and signals urgency; never invents a resolution.
 function triageStep(text) {
+  const matchText = text.replace(/[İı]/g, 'i');
   const lower = text.toLowerCase();
-  const isReturn = /refund|return|exchange/i.test(text);
-  const isUrgent = /urgent|asap|immediately|emergency/i.test(text);
-  const isMissingFacts = !/order\s*(number|#|id|no\.?)|reference|ticket/i.test(text);
+  const isReturn = /refund|return|exchange|iade|değişim|degisim/i.test(matchText);
+  const isUrgent = /urgent|asap|immediately|emergency|acil|hemen/i.test(matchText);
+  const isMissingFacts = !/order\s*(number|#|id|no\.?)|reference|ticket|sipariş\s*(numara|no)|siparis\s*(numara|no)/i.test(matchText);
 
-  const category = isReturn ? 'returns' : /complaint|dissatisfied|unhappy/i.test(text) ? 'complaint' : 'general';
+  const category = isReturn ? 'returns' : /complaint|dissatisfied|unhappy|şikayet|sikayet|memnun değil/i.test(matchText) ? 'complaint' : 'general';
   const urgency = isUrgent ? 'high' : 'normal';
   const missingFacts = isMissingFacts
     ? ['Order number or reference is required to process this request.']

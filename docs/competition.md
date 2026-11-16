@@ -19,3 +19,7 @@ Checked 2026-11-16 against [official rules](https://kiroween.devpost.com/rules) 
 - [ ] Publish video, application links and English submission; select applicable bonuses separately.
 
 No prize, eligibility or organizer acceptance is guaranteed. Local multi-agent product roles do not automatically qualify for the Kiro Crew bonus. MIT license already exists and is retained.
+
+## Recheck — 2026-11-16 follow-up
+
+The direct rules page returned HTTP 403 to the retrieval tool. The official Devpost rules indexed by search were accessible and continued to show the same category, timing and Kiro requirements. This is not a substitute for the entrant reviewing the complete live rules before submission. The public demo must be described as deterministic; local AI reproduction and video evidence are separate. No organizer acceptance is claimed.

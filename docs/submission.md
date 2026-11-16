@@ -1,127 +1,46 @@
-# Submission preparation
+# Kiroween 2026 submission draft
 
-This document covers all locally-completable submission tasks for the Kiroween 2026 contest.
-Items that require the user's personal information, a live deployment, or external access are
-marked **[BLOCKED — user action required]**.
+## Product description
 
-## Product description (English)
+**Skeleton Crew AI** is an offline-first foundation for small-business workflow apps. Support Desk classifies shop enquiries, drafts customer replies and creates owner checklists. Job Planner scopes service enquiries, drafts provisional work plans and asks for missing information. They share coordination, validation, traces and human review while retaining separate application folders and specialist roles.
 
-**Project name:** Skeleton Crew AI
+Every successful run waits for human review. Approving a draft records a decision; it never sends email, issues refunds, books appointments or takes payments.
 
-**Category:** Skeleton Crew
+There are two honest execution modes:
 
-**One-line summary:**
-An offline-first, reusable AI crew skeleton that helps small businesses triage shop enquiries
-and plan service jobs — with two distinct applications sharing one deterministic runtime.
+- **Public interactive demo:** deterministic workflows run in the browser without any model or API calls. Runs and decisions are stored only in the visitor's browser. It works without the owner's laptop.
+- **Free local AI:** Node.js and Ollama run qwen3:1.7b on the user's own computer. A three-call budget, JSON field validation, explicit failures and human review constrain each run. Local calls have a 120-second timeout. No paid API key is required.
 
-**What it does:**
-Skeleton Crew AI provides two applications built on a shared workflow runtime:
+The local model is small and imperfect. Initial real Turkish tests completed in approximately 42–49 seconds. Demonstrate its limitations honestly; do not promise production accuracy or measured business savings.
 
-1. **Support Desk** — Takes a customer enquiry, classifies its category and urgency, drafts a
-   factual reply, and produces an owner checklist. Missing order details become clarification
-   questions rather than invented answers. The owner reviews and approves or rejects the draft
-   before anything is sent.
+## Reuse and provenance
 
-2. **Job Planner** — Turns a service request into a scoped work plan with provisional tasks and
-   clarification questions for the customer. Bookings and quotes are never confirmed without
-   explicit owner approval.
+Node.js standard library and browser APIs are used without external runtime dependencies. Ollama and the Qwen model are separate third-party software with their own licenses; model weights are not included in the repository. The project source is MIT licensed. Initial preparation and later integration/QA were performed in Codex for the project owner. Kiro implementation activity is recorded in docs/kiro-usage.md based on the development sessions. The owner must review the record and confirm project ownership, dates and all reused work before submission.
 
-Both applications run entirely offline without API keys. A live OpenAI adapter can be enabled
-via environment variable, enforcing a 15-second per-call timeout, a three-call budget per run,
-and no automatic retries. The browser never receives provider credentials.
+## Judge instructions
 
-**How Kiro was used:**
-Kiro's spec workflow (`steering/`, `specs/two-app-mvp/`) guided the full implementation from
-requirements through tasks. See `docs/kiro-usage.md` for a detailed task-by-task record.
+1. Open the public demo and choose Support Desk. Its banner explicitly identifies the deterministic mode.
+2. Load a sample or enter a synthetic return enquiry with an order reference. Run the workflow; inspect category, urgency, draft, checklist and trace.
+3. Edit the draft and approve it. Refresh the page and use **Open** in history to inspect the saved decision and edited draft.
+4. Choose Job Planner, enter an urgent repair request and inspect provisional tasks and clarification questions. Reject the plan; confirm history updates.
+5. Empty input must show an inline error. No external action should occur on approval or rejection.
+6. To reproduce real AI locally, follow README's Ollama setup and run `npm run start:free`. The public browser-only demo does not expose the owner's local model.
+7. Run `npm test` to check offline contracts, lifecycle, provider failures, HTTP routes and persistence. The suite includes no paid inference.
 
-**Tech stack:** Node.js 22+, ES modules, zero runtime dependencies. Plain HTML/CSS/JS browser UI.
+## Demonstration script (target 2:45)
 
-**Reused material:** None beyond the Node.js standard library. The initial repository skeleton
-was prepared by the project owner before this Kiro session.
+- **0:00–0:15:** Explain the audience and two-app reusable foundation.
+- **0:15–0:45:** Public Support Desk: sample → classification → edit reply → approve. Mention browser-only deterministic mode.
+- **0:45–1:10:** Public Job Planner: urgent repair → provisional tasks → reject. Show the same trace/review pattern with different domain outputs.
+- **1:10–1:50:** Show a pre-run actual local AI example and its mode/trace. State it uses Ollama on this laptop, not a paid cloud API. If waiting time is edited, label the time cut and show measured duration; do not present a scripted output as live inference.
+- **1:50–2:15:** Refresh, open history, show the saved edited draft. Show no booking/refund/message was executed.
+- **2:15–2:35:** Show the two app folders, shared runtime and actual Kiro specs/steering. Explain one concrete Kiro-assisted implementation change from the evidence log.
+- **2:35–2:45:** Show current passing tests and repository URL; close with the local-model quality limitation and human review requirement.
 
----
+## Required final items
 
-## Jury test steps
-
-### Support Desk
-
-```
-npm run start:web
-# Open http://127.0.0.1:3000/support
-```
-
-1. Click **Load sample** to fill the request textarea with a sample enquiry.
-2. Click **Run workflow**. The result card appears with triage category, urgency, reply draft and
-   owner checklist.
-3. Edit the draft reply if desired.
-4. Click **Approve draft** or **Reject**. The status badge updates; no external action is taken.
-5. The History section lists all runs for the session.
-6. Try the **missing-facts** case: type "I want a refund" (no order number). The draft asks for
-   the order reference instead of inventing a resolution.
-7. Try the **urgent** case: type "This is urgent! I am extremely unhappy, ASAP." — urgency badge
-   shows `high` and the checklist includes a priority flag.
-
-### Job Planner
-
-```
-# Same server session
-# Open http://127.0.0.1:3000/planner
-```
-
-1. Click **Load sample** to fill in a repair request.
-2. Click **Plan this job**. Scope (service type, urgency), provisional tasks, clarification
-   questions and step trace are shown.
-3. `bookingConfirmed: No` and `Quote: not set` confirm no fabricated commitments.
-4. Click **Approve plan** or **Reject**.
-5. Try a vague request ("We need some work done") — missing-facts questions appear.
-6. Try an urgent request ("Emergency — roof leaking ASAP") — urgency `high` and a safety question
-   are added.
-
-### Error / injection tests
-
-- Submit an empty request → inline validation error appears; no run is created.
-- Paste `<script>alert(1)</script>` as the request and submit → it runs as a string;
-  the output is displayed as plain text, not executed.
-- Call `POST /api/runs/:id/review` twice with the same version → server returns `409 Conflict`.
-
----
-
-## Demo video script (≤ 3 minutes)
-
-**Scene 1 — Introduction (0:00–0:20)**
-"Skeleton Crew AI is a reusable small-business workflow starter built with Kiro.
-It ships two applications from one runtime: Support Desk and Job Planner."
-
-**Scene 2 — Support Desk normal flow (0:20–1:00)**
-Show: load sample → run → result card with triage, draft reply, checklist → edit draft → approve.
-Narrate: "Every output waits for owner review. Nothing is sent automatically."
-
-**Scene 3 — Support Desk missing-facts case (1:00–1:20)**
-Show: type "I want a refund" → run → draft asks for order number, not an invented resolution.
-
-**Scene 4 — Job Planner flow (1:20–1:55)**
-Show: load repair sample → plan → scope, tasks, clarification questions, booking not confirmed.
-Narrate: "No booking or quote is set without owner approval."
-
-**Scene 5 — Reject and history (1:55–2:15)**
-Show: reject a run → status badge changes → History panel updates.
-
-**Scene 6 — Code structure (2:15–2:45)**
-Brief terminal: `npm test` output showing 107 passing tests.
-Show `apps/support-desk/` and `apps/job-planner/` side by side — shared runtime, separate domains.
-
-**Scene 7 — Close (2:45–3:00)**
-"Two applications, one runtime, zero dependencies. All work reviewed before it reaches customers."
-
----
-
-## Open / blocked items
-
-| Item | Status |
-|---|---|
-| Rules recheck at kiroween.devpost.com | **[BLOCKED]** — requires browser or user to confirm current rules |
-| Personal eligibility (age, country, exclusions) | **[BLOCKED]** — user must declare |
-| Deployment to public hosting | **[BLOCKED]** — user must provide hosting account and target |
-| Public application URLs | **[BLOCKED]** — depends on deployment |
-| Video recording and YouTube upload | **[BLOCKED]** — user must record and upload |
-| Devpost submission form | **[BLOCKED]** — user must fill in and submit |
+- Public demo URL: recorded after successful publication in docs/release-links.md.
+- Repository: https://github.com/Tolgahanozkan6/skeleton-crew-ai
+- Actual YouTube video URL: pending recording/upload; no video has been fabricated.
+- Personal eligibility, applicable bonus categories and ownership declarations: owner must confirm.
+- Devpost final form submission: pending; this draft is not an entry or a guarantee of category acceptance.
