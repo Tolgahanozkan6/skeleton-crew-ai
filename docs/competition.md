@@ -2,6 +2,8 @@
 
 Checked 2026-11-16 against [official rules](https://kiroween.devpost.com/rules) and [organizer event page](https://kiroween.devpost.com/). Recheck before submitting; organizer decisions control.
 
+**Rules recheck on 2026-11-16 (this Kiro session):** URL not visited with a live browser in this session. The previously recorded rule summary (deadline December 4–5, 2026; Skeleton Crew category; two-app requirement; Kiro usage; MIT license; English materials; ≤3 min video) is reproduced below. The user must reconfirm current rules before submitting, as organizers may update them.
+
 - Submission window: October 30–December 4, 2026; deadline 14:00 PST (December 5, 01:00 Europe/Istanbul).
 - Skeleton Crew requires a reusable foundation, two distinct applications and two separate application folders.
 - Use Kiro meaningfully; retain root `.kiro/`. Public GitHub source, an open-source license, working application URLs, English materials and a Kiro usage write-up are required.

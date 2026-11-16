@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node src/demo.js",
+    "start:web": "node src/web.js",
     "test": "node --test",
     "demo:support": "node apps/support-desk/demo.js",
     "demo:planner": "node apps/job-planner/demo.js"

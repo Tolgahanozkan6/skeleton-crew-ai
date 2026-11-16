@@ -24,11 +24,16 @@ test('both apps reject empty and non-string input before execution', () => {
     for (const value of ['', ' ', null, 42]) assert.throws(() => run(value), TypeError);
   }
 });
-test('shared runtime stops after specialist failure', () => {
+test('shared runtime stops after specialist failure and returns failed state', () => {
   let called = false;
-  assert.throws(() => runWorkflow('request', [
+  const result = runWorkflow('request', [
     { name: 'broken', run: () => { throw new Error('step failed'); } },
-    { name: 'later', run: () => { called = true; } }
-  ]), /step failed/);
+    { name: 'later', run: () => { called = true; } },
+  ]);
+  assert.equal(result.status, 'failed');
+  assert.equal(result.failedStep, 'broken');
+  assert.match(result.error, /step failed/);
+  assert.deepEqual(result.outputs, {});
+  assert.equal(result.trace.at(-1).status, 'failed');
   assert.equal(called, false);
 });
