@@ -5,11 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const bundled = resolve('../ollama-runtime/ollama');
-const binary = process.env.OLLAMA_BIN || (existsSync(bundled) ? bundled : 'ollama');
+const useBundled = existsSync(bundled) && !process.env.OLLAMA_BIN;
+const binary = process.env.OLLAMA_BIN || (useBundled ? bundled : 'ollama');
 let daemon;
 try { await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(5000) }); }
 catch {
-  daemon = spawn(binary, ['serve'], { env: { ...process.env, OLLAMA_MODELS: resolve('../ollama-models'), OLLAMA_HOST: '127.0.0.1:11434', OLLAMA_NO_CLOUD: '1' }, stdio: 'ignore' });
+  daemon = spawn(binary, ['serve'], { env: { ...process.env, ...(useBundled ? { OLLAMA_MODELS: resolve('../ollama-models') } : {}), OLLAMA_HOST: '127.0.0.1:11434', OLLAMA_NO_CLOUD: '1' }, stdio: 'ignore' });
   daemon.on('error', () => { console.error('Ollama not installed. See README free local AI setup.'); process.exit(1); });
 }
 let ready = false;

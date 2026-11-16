@@ -82,3 +82,7 @@ Connected JsonStore to normal web startup and added optional .env loading. Conne
 ## Free local AI setup
 
 Added Ollama loopback-only provider with schema-constrained local responses, three-call budget and a separate 120-second local timeout. Added start:free launcher and local adapter tests. No paid account or API key is required. Installation and real-model verification are tracked by the current Codex session. Cloud mode remains optional and explicitly configured.
+
+### Real local-model verification
+
+Installed Ollama 0.40.16 in the workspace and downloaded qwen3:1.7b. Both Turkish end-to-end requests completed through the real local model with awaiting_human_review status (Support Desk 41.6 seconds; Job Planner 48.5 seconds). No API key or cloud inference was used. Small-model quality limitations observed: an urgent classification was overly eager and a repair was classified as general; role prompts were tightened for these cases. This is functional integration evidence, not a quality guarantee. Human review remains required.
