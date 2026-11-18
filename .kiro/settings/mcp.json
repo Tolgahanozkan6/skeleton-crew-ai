@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "skeleton-crew": {
+      "command": "node",
+      "args": ["scripts/mcp-server.mjs"],
+      "disabled": false,
+      "autoApprove": ["list_apps", "run_workflow", "validate_output"]
+    }
+  }
+}

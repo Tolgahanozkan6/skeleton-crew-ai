@@ -42,10 +42,13 @@ function stopTestServer() {
 test('HTTP server routes', async (t) => {
   await startTestServer();
 
-  await t.test('GET / redirects to /support', async () => {
-    const res = await fetch(baseUrl + '/', { redirect: 'manual' });
-    assert.equal(res.status, 302);
-    assert.ok(res.headers.get('location').includes('/support'));
+  await t.test('GET / renders a landing page linking every registered app', async () => {
+    const res = await fetch(baseUrl + '/');
+    assert.equal(res.status, 200);
+    const text = await res.text();
+    assert.ok(text.includes('href="/support"'));
+    assert.ok(text.includes('href="/planner"'));
+    assert.ok(res.headers.get('content-security-policy').includes("script-src 'self'"));
   });
 
   await t.test('GET /support returns HTML', async () => {

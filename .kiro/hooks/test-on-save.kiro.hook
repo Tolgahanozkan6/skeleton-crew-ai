@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Run tests on source change",
+  "description": "When core, app or test code changes, run the offline test suite and fix any failure before continuing.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["src/**/*.js", "apps/**/*.js", "test/**/*.js", "scripts/**/*.mjs"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file changed. Run `npm test`. If anything fails, explain the failing test and fix the code (not the test) unless the test encodes outdated behaviour. Never weaken safety tests (bookingConfirmed=false, quote=null, no refund approval, failed runs have no outputs)."
+  }
+}

@@ -1,11 +1,11 @@
 /**
  * Shared request/output contracts for Skeleton Crew AI.
- * R2: accept only trimmed strings of 1–4,000 characters;
- * reject unknown app IDs/modes; validate domain output shape.
+ * Accept only trimmed strings of 1–4,000 characters; reject unknown app IDs
+ * and modes; validate domain output shape. App IDs come from the registry,
+ * so this module never names an application. Browser-safe.
  */
 
-export const VALID_APPS = new Set(['support-desk', 'job-planner']);
-export const VALID_MODES = new Set(['offline-demo']);
+export const VALID_MODES = new Set(['offline-demo', 'live']);
 export const MAX_REQUEST_LENGTH = 4000;
 
 /**
@@ -29,16 +29,16 @@ export function validateRequest(request) {
 }
 
 /**
- * Validates an app ID against the known set.
+ * Validates an app ID against the registered IDs.
  * Throws TypeError for unknown values.
  * @param {unknown} appId
+ * @param {Iterable<string>} knownIds registry.ids
  * @returns {string}
  */
-export function validateAppId(appId) {
-  if (typeof appId !== 'string' || !VALID_APPS.has(appId)) {
-    throw new TypeError(
-      `Unknown app ID "${appId}". Valid values: ${[...VALID_APPS].join(', ')}`
-    );
+export function validateAppId(appId, knownIds) {
+  const known = new Set(knownIds);
+  if (typeof appId !== 'string' || !known.has(appId)) {
+    throw new TypeError(`Unknown app ID. Valid values: ${[...known].join(', ')}`);
   }
   return appId;
 }

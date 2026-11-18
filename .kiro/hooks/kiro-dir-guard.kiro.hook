@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "name": "Keep .kiro tracked",
+  "description": "Competition rule: the /.kiro folder must stay in the repository. Warn if .gitignore changes.",
+  "version": "1",
+  "when": { "type": "fileEdited", "patterns": [".gitignore"] },
+  "then": {
+    "type": "askAgent",
+    "prompt": ".gitignore changed. Verify that `.kiro` (or any parent pattern that matches it) is NOT ignored — `git check-ignore -v .kiro/steering/product.md` must print nothing. If it is ignored, revert that line and tell the user this would disqualify the Kiroween entry."
+  }
+}

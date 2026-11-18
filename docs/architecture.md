@@ -1,34 +1,54 @@
 # Architecture
 
-Customer request → coordinator → triage → reply draft + operations checklist → human review.
-
-The initial implementation is deterministic and runs entirely offline. No model, database, deployment, or external integrations are configured. Future adapters must preserve review-before-send and keep customer data out of logs.
-
-## Shared runtime and application boundaries
-
-Current runtime: `src/runtime.js` executes named pure steps sequentially and records their order. `apps/support-desk/` wraps the existing `src/crew.js` through that runtime; `apps/job-planner/` defines scope, planning and clarification steps. Existing source files and tests are retained. All current results are synthetic deterministic drafts; no database, server or model adapter exists yet.
-
-```mermaid
-flowchart TD
-  S[Support Desk] --> C[Shared runtime]
-  J[Job Planner] --> C
-  C --> P[Domain specialist steps]
-  P --> D[Draft and trace]
-  D --> H[Human review - planned]
-  H --> R[Local run and decision store - planned]
+```text
+apps/<id>/workflow.js ─┐ steps: name · label · run(text, outputs, ctx) · schema · instructions
+apps/<id>/manifest.js ─┤ defineApp({ id, route, title, samples, steps, view })
+apps/index.js ─────────┘ createRegistry([...])            ← one line per app
+            │
+            ▼
+src/registry.js   validates manifests (ids, routes, schemas, view ↔ schema references)
+src/runtime.js    offline: run steps in order, validate each output, timed trace
+src/live-workflow.js  live: one provider per run, same schemas, explicit failure
+src/lifecycle.js  makeRun · applyReview · validateProfile  (shared with the browser demo)
+src/store.js      MemoryStore · JsonStore (atomic temp-file + rename)
+src/server.js     /, /<route>, /assets/*, /api/apps, /api/runs[?appId], /api/runs/:id[/review]
+src/ui/           pages.js (HTML shell + data-only config) · client.js · styles.css
 ```
 
-## Planned web MVP
-Keep Node.js ES modules and native tests. Add one local HTTP server and two separate application frontends, sharing runtime and review components. Prefer plain HTML/CSS/JS until complexity justifies a framework. Serve app-specific routes `/support` and `/planner`; never expose provider credentials to browser code.
+```mermaid
+flowchart LR
+  R[Request] --> S1[Step 1] --> S2[Step 2] --> S3[Step 3]
+  S1 & S2 & S3 -. validate against step schema .-> V{valid?}
+  V -- no --> F[failed run, no outputs]
+  V -- yes --> H[awaiting human review]
+  H --> A[approved / rejected, versioned]
+```
 
-Proposed API: `POST /api/runs` with `{appId, request, mode}`, `GET /api/runs/:id`, `POST /api/runs/:id/reviews` with `{decision, editedDraft, expectedVersion}`. Server generates IDs and timestamps. Run: `{id, appId, mode, status, version, outputs, trace, error?}`; review: `{runId, decision, editedDraft, createdAt, version}`. Use statuses `running`, `awaiting_human_review`, `approved`, `rejected`, `failed`. Approve/reject requires matching version and a pending draft; conflicting or duplicate transitions return 409.
+## The skeleton boundary
 
-Start with an injectable in-memory store; add atomic local JSON persistence under ignored `data/` for the single-user demo. Validate records on load and report corruption; never silently overwrite broken data. No cross-process or multi-tenant guarantees. Keep persistent schema versioned.
+`src/` never names an application, step or domain field; `test/registry.test.js` fails if it does. The server, live runner, browser UI, MCP server and public build all iterate over the registry. Adding an app is `npm run new-app <id> "<Title>"`, which writes `apps/<id>/` and one registry line; the generic tests then cover it.
 
-Provider interface (planned): `generate({role,input,context,signal})` returns validated structured output. Deterministic fixtures are the default adapter; a real provider will be chosen and documented in T5. Limit request to 4,000 characters, bound output size, timeout each live call after 15 seconds and cap a run at three specialist calls with no automatic retries initially. Treat user/model text as data, not tool instructions. Invalid outputs/timeouts fail the run and disable approval. Do not silently substitute offline output for a failed live call.
+## One contract, three modes
 
-Tests must cover both apps, validation, step failure, provider schema rejection/timeouts, review conflicts, persistence reload and secret-free logs. Avoid full input/output logging. Store only synthetic demo data by default.
+| Mode | Where | Steps | Storage |
+|---|---|---|---|
+| Public demo | visitor's browser | deterministic rules | localStorage |
+| Local offline | Node server | deterministic rules | `data/runs.json` |
+| Local live | Node server → Ollama on 127.0.0.1 | model, 3 calls max | `data/runs.json` |
 
-## Local AI provider
+The same step schema validates rule output and model output. The browser demo imports the same `runtime`, `registry` and `lifecycle` modules as the server, so the review rules cannot drift.
 
-Ollama is the recommended free runtime, listening on loopback only. Its chat endpoint uses non-streaming schema-constrained responses; the application independently validates domain fields. Each local call has a 120-second timeout (the cloud adapter retains 15 seconds); each run has at most three calls and no retries. This supersedes the earlier universal 15-second timeout proposal for local inference. Local inference requires the laptop and model service to be running; public offline demos remain independent.
+## Review lifecycle
+
+`awaiting_human_review | failed → approved | rejected`. Review requires the current `version`; stale or repeated decisions return 409. `editedDraft` must be a string ≤ 8,000 characters or null. Failed runs store no outputs and cannot be approved. Approval performs no external action.
+
+## Trust boundaries
+
+- Customer text and earlier step outputs are untrusted data (user message only).
+- Step instructions, schemas and the owner's business profile are trusted (system messages).
+- Pages use a strict CSP (no inline scripts); untrusted text is rendered with `textContent`.
+- The server binds to 127.0.0.1, blocks cross-origin POSTs, limits bodies to 16 KB and never returns internal error text.
+
+## Known limits
+
+No authentication, multi-user isolation, rate limiting or job queue: the Node server is a single-user local tool. JsonStore rewrites the whole file and is not multi-process safe. Local model quality and start-up reliability depend on the machine and must be re-measured before any demo.

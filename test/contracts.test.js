@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { registry } from '../apps/index.js';
 import {
   validateRequest,
   validateAppId,
@@ -49,23 +50,23 @@ test('validateRequest: rejects a number', () => {
 // ── validateAppId ────────────────────────────────────────────────────────────
 
 test('validateAppId: accepts support-desk', () => {
-  assert.equal(validateAppId('support-desk'), 'support-desk');
+  assert.equal(validateAppId('support-desk', registry.ids), 'support-desk');
 });
 
 test('validateAppId: accepts job-planner', () => {
-  assert.equal(validateAppId('job-planner'), 'job-planner');
+  assert.equal(validateAppId('job-planner', registry.ids), 'job-planner');
 });
 
 test('validateAppId: rejects unknown app', () => {
-  assert.throws(() => validateAppId('billing-bot'), TypeError);
+  assert.throws(() => validateAppId('billing-bot', registry.ids), TypeError);
 });
 
 test('validateAppId: rejects null', () => {
-  assert.throws(() => validateAppId(null), TypeError);
+  assert.throws(() => validateAppId(null, registry.ids), TypeError);
 });
 
 test('validateAppId: rejects a number', () => {
-  assert.throws(() => validateAppId(1), TypeError);
+  assert.throws(() => validateAppId(1, registry.ids), TypeError);
 });
 
 // ── validateMode ─────────────────────────────────────────────────────────────
@@ -74,8 +75,12 @@ test('validateMode: accepts offline-demo', () => {
   assert.equal(validateMode('offline-demo'), 'offline-demo');
 });
 
+test('validateMode: accepts live (same contract as the HTTP API)', () => {
+  assert.equal(validateMode('live'), 'live');
+});
+
 test('validateMode: rejects unknown mode', () => {
-  assert.throws(() => validateMode('live'), TypeError);
+  assert.throws(() => validateMode('turbo'), TypeError);
 });
 
 test('validateMode: rejects null', () => {

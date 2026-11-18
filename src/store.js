@@ -1,116 +1,69 @@
 /**
- * Run store and review service (T3).
+ * Run stores. Both adapters share one interface and the lifecycle in
+ * src/lifecycle.js (also used by the browser-only public demo):
  *
- * Two adapters share the same interface:
- *   createRun(appId, mode, outputs, trace)  → run object
- *   getRun(id)                              → run | undefined
- *   listRuns()                              → run[]
- *   saveReview(id, { decision, editedDraft, expectedVersion }) → run
+ *   createRun(appId, mode, outputs, trace, { input, profileUsed }) → run
+ *   getRun(id)                                                     → run | undefined
+ *   listRuns({ appId }?)                                           → run[]
+ *   saveReview(id, { decision, editedDraft, expectedVersion })     → run
  *
- * Status lifecycle: running → awaiting_human_review | failed
- *                   awaiting_human_review → approved | rejected
- * Invalid transitions throw RangeError.  Duplicate decisions throw RangeError.
- * Stale version (expectedVersion mismatch) throws RangeError.
- * Unknown run id throws TypeError.
+ * Errors: NotFoundError (TypeError) for unknown ids, ValidationError (TypeError)
+ * for malformed reviews, ConflictError (RangeError) for stale/repeated decisions.
+ * Stores never name an application; JsonStore accepts an `isKnownApp` predicate.
  */
 
-import { randomUUID } from 'node:crypto';
+import { readFileSync, writeFileSync, mkdirSync, renameSync, existsSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { NotFoundError } from './errors.js';
+import { SCHEMA_VERSION, makeRun, applyReview, isValidStoredRun } from './lifecycle.js';
 
-export const SCHEMA_VERSION = 1;
+export { SCHEMA_VERSION };
 
-// ── pure helpers ─────────────────────────────────────────────────────────────
+const SLUG = /^[a-z][a-z0-9-]{1,40}$/;
+const defaultIsKnownApp = (id) => typeof id === 'string' && SLUG.test(id);
 
-function makeRun(appId, mode, outputs, trace, status) {
-  return {
-    schemaVersion: SCHEMA_VERSION,
-    id: randomUUID(),
-    appId,
-    mode,
-    status,
-    version: 1,
-    outputs,
-    trace,
-    error: status === 'failed' ? (trace.at(-1)?.error ?? null) : null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    review: null,
-  };
-}
+class BaseStore {
+  _runs = new Map();
 
-function applyReview(run, decision, editedDraft, expectedVersion) {
-  if (!run) throw new TypeError('Run not found');
-  if (run.version !== expectedVersion) {
-    throw new RangeError(
-      `Stale version: expected ${run.version}, got ${expectedVersion}`
-    );
-  }
-  if (run.status !== 'awaiting_human_review') {
-    throw new RangeError(
-      `Cannot review a run with status "${run.status}"`
-    );
-  }
-  if (!['approved', 'rejected'].includes(decision)) {
-    throw new TypeError(`Unknown decision "${decision}"`);
-  }
-  const updated = {
-    ...run,
-    status: decision,
-    version: run.version + 1,
-    updatedAt: new Date().toISOString(),
-    review: {
-      decision,
-      editedDraft: editedDraft ?? null,
-      createdAt: new Date().toISOString(),
-      version: run.version + 1,
-    },
-  };
-  return updated;
-}
-
-// ── in-memory store ──────────────────────────────────────────────────────────
-
-export class MemoryStore {
-  #runs = new Map();
-
-  createRun(appId, mode, outputs, trace) {
-    const status =
-      trace.some((t) => t.status === 'failed')
-        ? 'failed'
-        : 'awaiting_human_review';
-    const run = makeRun(appId, mode, outputs, trace, status);
-    this.#runs.set(run.id, run);
+  createRun(appId, mode, outputs, trace, extra = {}) {
+    const run = makeRun({ appId, mode, outputs, trace, ...extra });
+    this._runs.set(run.id, run);
+    try { this._persist(); } catch (error) { this._runs.delete(run.id); throw error; }
     return run;
   }
 
   getRun(id) {
-    return this.#runs.get(id);
+    return this._runs.get(id);
   }
 
-  listRuns() {
-    return [...this.#runs.values()];
+  listRuns({ appId } = {}) {
+    const runs = [...this._runs.values()];
+    return appId ? runs.filter((r) => r.appId === appId) : runs;
   }
 
-  saveReview(id, { decision, editedDraft = null, expectedVersion }) {
-    const run = this.#runs.get(id);
-    if (!run) throw new TypeError(`Run not found: ${id}`);
-    const updated = applyReview(run, decision, editedDraft, expectedVersion);
-    this.#runs.set(id, updated);
+  saveReview(id, body) {
+    const run = this._runs.get(id);
+    if (!run) throw new NotFoundError(`Run not found: ${id}`);
+    const updated = applyReview(run, body);
+    this._runs.set(id, updated);
+    try { this._persist(); } catch (error) { this._runs.set(id, run); throw error; }
     return updated;
   }
+
+  _persist() {}
 }
 
-// ── JSON file adapter ────────────────────────────────────────────────────────
+export class MemoryStore extends BaseStore {}
 
-import { readFileSync, writeFileSync, mkdirSync, renameSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-
-export class JsonStore {
+export class JsonStore extends BaseStore {
   #path;
-  #runs;   // Map<id, run>
+  #isKnownApp;
 
-  constructor(filePath) {
+  constructor(filePath, { isKnownApp = defaultIsKnownApp } = {}) {
+    super();
     this.#path = filePath;
-    this.#runs = this.#load();
+    this.#isKnownApp = isKnownApp;
+    this._runs = this.#load();
   }
 
   #load() {
@@ -127,26 +80,15 @@ export class JsonStore {
     } catch {
       throw new Error(`Store file is corrupt (invalid JSON): ${this.#path}`);
     }
-    if (
-      typeof parsed !== 'object' ||
-      parsed === null ||
-      !Array.isArray(parsed.runs)
-    ) {
+    if (typeof parsed !== 'object' || parsed === null || !Array.isArray(parsed.runs)) {
       throw new Error(`Store file has unexpected shape: ${this.#path}`);
     }
     if (parsed.schemaVersion !== SCHEMA_VERSION) {
-      throw new Error(
-        `Unsupported schema version ${parsed.schemaVersion} in ${this.#path} (expected ${SCHEMA_VERSION})`
-      );
+      throw new Error(`Unsupported schema version ${parsed.schemaVersion} in ${this.#path} (expected ${SCHEMA_VERSION})`);
     }
     const map = new Map();
     for (const run of parsed.runs) {
-      if (!run || typeof run.id !== 'string' || map.has(run.id) ||
-          !['support-desk', 'job-planner'].includes(run.appId) ||
-          !['offline-demo', 'live'].includes(run.mode) ||
-          !['awaiting_human_review', 'approved', 'rejected', 'failed'].includes(run.status) ||
-          !Number.isInteger(run.version) || run.version < 1 ||
-          !run.outputs || typeof run.outputs !== 'object' || !Array.isArray(run.trace)) {
+      if (!isValidStoredRun(run, this.#isKnownApp) || map.has(run.id)) {
         throw new Error('Store contains an invalid run record');
       }
       map.set(run.id, run);
@@ -154,45 +96,12 @@ export class JsonStore {
     return map;
   }
 
-  #save() {
-    const dir = dirname(this.#path);
-    mkdirSync(dir, { recursive: true });
-    const payload = JSON.stringify(
-      { schemaVersion: SCHEMA_VERSION, runs: [...this.#runs.values()] },
-      null,
-      2
-    );
-    // Atomic write: write to temp then rename
+  _persist() {
+    mkdirSync(dirname(this.#path), { recursive: true });
+    const payload = JSON.stringify({ schemaVersion: SCHEMA_VERSION, runs: [...this._runs.values()] }, null, 2);
+    // Atomic replace: write a temp file in the same directory, then rename.
     const tmp = this.#path + '.tmp';
     writeFileSync(tmp, payload, 'utf8');
     renameSync(tmp, this.#path);
-  }
-
-  createRun(appId, mode, outputs, trace) {
-    const status =
-      trace.some((t) => t.status === 'failed')
-        ? 'failed'
-        : 'awaiting_human_review';
-    const run = makeRun(appId, mode, outputs, trace, status);
-    this.#runs.set(run.id, run);
-    try { this.#save(); } catch (error) { this.#runs.delete(run.id); throw error; }
-    return run;
-  }
-
-  getRun(id) {
-    return this.#runs.get(id);
-  }
-
-  listRuns() {
-    return [...this.#runs.values()];
-  }
-
-  saveReview(id, { decision, editedDraft = null, expectedVersion }) {
-    const run = this.#runs.get(id);
-    if (!run) throw new TypeError(`Run not found: ${id}`);
-    const updated = applyReview(run, decision, editedDraft, expectedVersion);
-    this.#runs.set(id, updated);
-    try { this.#save(); } catch (error) { this.#runs.set(id, run); throw error; }
-    return updated;
   }
 }

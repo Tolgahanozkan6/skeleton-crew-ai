@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Manifest guard",
+  "description": "When an app manifest or workflow changes, check the skeleton boundary and the app's safety literals.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/*/manifest.js", "apps/*/workflow.js", "apps/index.js"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "An app manifest or workflow changed. 1) Use the skeleton-crew MCP tool `list_apps` and confirm the app still registers. 2) Run `run_workflow` on each sample of the changed app and confirm status is awaiting_human_review. 3) Confirm no file in src/ mentions this app's id, route, step names or fields (run `node --test test/registry.test.js`). 4) Confirm customer-facing drafts never promise refunds, prices or bookings."
+  }
+}

@@ -36,3 +36,12 @@ jobs:
 
       - name: Run legacy demo (npm start)
         run: npm start
+
+      - name: Build static public demo
+        run: npm run build:demo
+
+      - name: Scaffold a throwaway third app and re-run tests
+        run: |
+          npm run new-app ci-smoke-app "CI Smoke App"
+          npm test
+          git checkout -- apps/index.js && rm -rf apps/ci-smoke-app

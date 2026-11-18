@@ -1,33 +1,36 @@
 # Kiro usage and provenance
 
-This file records actual Kiro work performed on this project.
-Do not add invented sessions, commits, hooks or test evidence.
+This file records which tool did which work. Do not add invented sessions, commits, hooks or test evidence.
 
-## Session record
+## Kiro sessions
 
 | Date | Kiro surface | Task | Features used | Validation |
 |---|---|---|---|---|
 | 2026-11-16 | Kiro Crew dashboard (acp-client) | T1 — contracts | Spec reading, file create (`src/contracts.js`, `test/contracts.test.js`) | 34/34 tests passed |
 | 2026-11-16 | Kiro Crew dashboard (acp-client) | T2 — workflows | Spec reading, file edit/create (workflow.js ×2, fixtures.js ×2, workflows.test.js, apps.test.js, runtime.js) | 49/49 tests passed |
 | 2026-11-16 | Kiro Crew dashboard (acp-client) | T3 — store | File create (`src/store.js`, `test/store.test.js`) | 69/69 tests passed |
-| 2026-11-16 | Kiro Crew dashboard (acp-client) | T4 — browser apps | File create (server.js, web.js, ui/shared.js, ui/support-page.js, ui/planner-page.js, server.test.js), package.json edit | 90/90 tests passed |
-| 2026-11-16 | Kiro Crew dashboard (acp-client) | T5 — provider adapter | File create (`src/provider.js`, `test/provider.test.js`) | 107/107 tests passed; live integration blocked (no key) |
-| 2026-11-16 | Kiro Crew dashboard (acp-client) | T6 — CI and docs | File create (`.github/workflows/ci.yml`, `docs/progress.md`), README edit | 107/107 local tests; remote CI pending push |
-| 2026-11-16 | Kiro Crew dashboard (acp-client) | T7 — submission prep | File create (`docs/submission.md`), kiro-usage.md update | Partial — blocked items recorded |
+| 2026-11-16 | Kiro Crew dashboard (acp-client) | T4 — browser apps | File create (server.js, web.js, ui pages, server.test.js), package.json edit | 90/90 tests passed |
+| 2026-11-16 | Kiro Crew dashboard (acp-client) | T5 — provider adapter | File create (`src/provider.js`, `test/provider.test.js`) | 107/107 tests passed |
+| 2026-11-16 | Kiro Crew dashboard (acp-client) | T6 — CI and docs | `.github/workflows/ci.yml`, `docs/progress.md`, README edit | 107/107 local tests |
+| 2026-11-16 | Kiro Crew dashboard (acp-client) | T7 — submission prep | `docs/submission.md`, this file | Partial |
 
-## How Kiro changed the outcome
+**To add:** later Kiro sessions (for example executing the `.kiro/hooks`, using the `skeleton-crew` MCP tools, or building a third app from a spec). Add screenshots or exported logs under `docs/kiro-evidence/`.
 
-- The `.kiro/specs/two-app-mvp/` spec drove the implementation order and acceptance criteria for each task.
-- Kiro read steering files (`tech.md`, `structure.md`, `product.md`) at the start of each task to enforce constraints (ES modules, no frameworks, no fabricated outputs, secrets never in code).
-- Each task was validated against the spec's exit criteria before being marked complete.
-- The two-application separation and shared-runtime pattern came from the spec's design file.
+## Work done with other assistants
+
+| Date | Tool | Work |
+|---|---|---|
+| 2026-11-16 | Codex (OpenAI) | Initial repo preparation, product/architecture plan and first `.kiro` files; review of T1–T7; JSON persistence wiring, provider integration, Ollama path, integration tests, Turkish/UX fixes, first public demo publication. |
+| 2026-11-16/17 | Claude Code (Anthropic) | Spec `.kiro/specs/app-registry/` and its implementation: manifest registry, app-agnostic core, shared schemas for rules and model, review/status-code fixes, manifest-driven UI and landing page, business profile, static build from unchanged modules, `new-app` scaffolder, MCP server, Kiro hooks and MCP config, updated steering/docs; tests 118 → 145. |
+
+## How Kiro shaped the outcome
+
+- `.kiro/specs/two-app-mvp/` set the task order and acceptance criteria for T1–T7.
+- Steering files (`product`, `structure`, `tech`) carried the constraints that every later change kept: ES modules, no runtime dependencies, no fabricated outputs or commitments, human review, secrets never in code.
+- The `app-registry` spec and the hooks/MCP config are written so that further work (for example a third app) can be done and verified inside Kiro.
 
 ## Third-party material and pre-existing work
 
-- **No runtime dependencies** — only Node.js 22 standard library.
-- Initial repository skeleton (runtime.js, crew.js, demo.js, original tests, MIT license, README base, docs/) was created by the project owner before this Kiro session.
-- All files in `src/contracts.js`, `src/store.js`, `src/server.js`, `src/provider.js`, `src/web.js`, `src/ui/`, `apps/*/workflow.js` (rewritten), `apps/*/fixtures.js`, `test/contracts.test.js`, `test/store.test.js`, `test/server.test.js`, `test/provider.test.js`, `test/workflows.test.js`, `.github/workflows/ci.yml`, `docs/progress.md`, `docs/submission.md` were created or substantially rewritten in this Kiro session.
-
-## Uncommitted / unpublished
-
-Local files have been created and edited in this session. No `git commit` or `git push` has been performed. GitHub history does not yet reflect this work. CI has not run. This note must be updated when commits are made.
+- No runtime dependencies; Node.js 22 standard library only.
+- Ollama and the Qwen model are separate software with their own licenses; no weights are included.
+- The initial repository skeleton (runtime.js, crew.js, demo.js, first tests, MIT license, README, docs) was created by the project owner with Codex before the Kiro sessions. The owner must confirm that all of it was created on or after 2026-10-30.

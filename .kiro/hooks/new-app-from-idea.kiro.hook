@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "name": "New app from an idea",
+  "description": "Manually triggered: turn a one-line small-business idea into a third app on the skeleton.",
+  "version": "1",
+  "when": { "type": "userTriggered" },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Ask the user for a one-line small-business workflow idea. Create a spec under .kiro/specs/<id>/ (requirements, design, tasks). Then call the skeleton-crew MCP tool `scaffold_app`, replace the template rules, step schemas, instructions, samples and view in apps/<id>/, keep every output human-reviewed with no external action, and run `npm test` until it passes. Record the session in docs/kiro-usage.md."
+  }
+}

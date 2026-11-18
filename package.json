@@ -1,9 +1,9 @@
 {
   "name": "skeleton-crew-ai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Offline starter for a small-business AI crew",
+  "description": "Lean skeleton for human-reviewed small-business workflow apps: one manifest per app, validated steps, free local AI.",
   "engines": {
     "node": ">=22"
   },
@@ -13,6 +13,9 @@
     "test": "node --test",
     "demo:support": "node apps/support-desk/demo.js",
     "demo:planner": "node apps/job-planner/demo.js",
-    "start:free": "node scripts/start-free.js"
+    "start:free": "node scripts/start-free.js",
+    "build:demo": "node scripts/build-public-demo.mjs",
+    "new-app": "node scripts/new-app.mjs",
+    "mcp": "node scripts/mcp-server.mjs"
   }
 }

@@ -1,110 +1,94 @@
-# Skeleton Crew AI
+# 💀 Skeleton Crew AI
 
-Category: **Skeleton Crew** — a Kiroween 2026 project starter.
+**One lean skeleton. A crew for every small-business inbox.** · Kiroween 2026 · Skeleton Crew category
 
-An AI-powered team for small businesses: triage customer requests, draft replies, and organize daily operations. This repository starts with a deterministic, offline demo; live AI providers and external actions are future work.
+Small shops and trades get the same messages every day: *"my order arrived broken"*, *"the shop door won't close, can you come today?"*. Skeleton Crew AI is a dependency-free starter for apps where a small crew of specialist steps turns such a request into a reviewed next step. You approve, edit or reject. The app never sends, books, refunds or charges anything itself.
+
+Two distinct apps ship on the same skeleton:
+
+| | Support Desk 💬 | Job Planner 🛠️ |
+|---|---|---|
+| Input | customer email / chat message | service or repair request |
+| Steps | Triage → Reply draft → Owner checklist | Scope → Work plan → Questions |
+| Output | category, urgency, editable reply in the customer's language, checklist | job type, provisional tasks, missing details, questions; never a booking or price |
+
+![Support Desk](docs/assets/support-desk-light.png)
+
+**Try it:** [public demo](https://skeleton-crew-ai-demo.jauntybag4.chatgpt.site/) (deterministic rules in your browser, no AI) · or run it locally with free local AI (below).
+
+## Why it's a skeleton, not two demos
+
+Each app is **one folder and one manifest**. The shared core (`src/`) never mentions an app; a test fails if it does.
+
+```js
+// apps/job-planner/manifest.js
+export default defineApp({
+  id: 'job-planner', route: 'planner', title: 'Job Planner',
+  samples: ['Please repair our broken shop door at 14 High Street.'],
+  steps,   // [{ name, label, run, schema, instructions }]
+  view: [
+    { type: 'fields', step: 'scope', title: 'Scope', fields: [['service', 'Job type']] },
+    { type: 'list', step: 'planner', field: 'tasks', title: 'Provisional work plan', checklist: true },
+  ],
+});
+```
+
+From that manifest the skeleton provides: HTTP routes, a UI page with step timeline, history and review, output validation, the offline runner, the local-model runner (each step's `schema` becomes the model's JSON schema), MCP tools, the static public demo, and tests.
+
+Add a third app in one command:
+
+```sh
+npm run new-app review-responder "Review Responder"
+npm test          # the new app is already covered by the generic registry tests
+npm run start:web # → http://127.0.0.1:3000/review-responder
+```
 
 ## Quick start
 
-Requires Node.js 22 or newer. No dependencies or API keys are needed for offline mode.
+Requires Node.js 22+. No `npm install`, no API keys.
 
 ```sh
-# CLI demos (offline, no server)
-npm start              # legacy single-crew demo
-npm run demo:support   # Support Desk CLI demo
-npm run demo:planner   # Job Planner CLI demo
-
-# Tests (all offline, no network required)
-npm test
-
-# Local web server (both apps, loopback only)
-npm run start:web
-# Support Desk → http://127.0.0.1:3000/support
-# Job Planner  → http://127.0.0.1:3000/planner
-```
-
-The web server binds to `127.0.0.1` only. No install step or `.env` file is required for offline mode.
-
-### Free local AI (recommended)
-
-Use Ollama locally with `qwen3:1.7b`. No API key or cloud account is required. Install [Ollama](https://ollama.com/download), run `ollama pull qwen3:1.7b` once, then use:
-
-```sh
-npm run start:free
-```
-
-This starts the local model service if needed and enables AI for both apps. The installer prepared in this workspace uses `../ollama-runtime/ollama` and `../ollama-models`; a fresh checkout can use a normal Ollama installation. Local model calls go only to `127.0.0.1:11434`. Each run has at most three calls; local calls time out after 120 seconds to allow model loading. Small local models can make mistakes: review every draft. No messages, bookings or payments are sent.
-
-For the fastest deterministic demo without a model, run `npm run start:web` with `CREW_MODE=offline-demo` (the default). This is also the portable mode for a public demonstration that cannot access your laptop's model.
-
-The optional paid OpenAI adapter remains available only if explicitly configured with `CREW_PROVIDER=openai`, `CREW_MODE=live` and a key; it is not needed for this project. No key has been configured by this setup.
-
-References: [Ollama chat API](https://docs.ollama.com/api/chat), [model and license](https://ollama.com/library/qwen3:1.7b).
-
-### Data location
-
-The web server persists runs and reviews in `data/runs.json` (gitignored). Set `CREW_DATA_FILE` to change the location. A restart preserves records. Corrupt or unsupported files stop startup instead of being overwritten; back up and repair them. Only run one server process per data file.
-
-### Known limitations
-
-- Persistent storage is local and single-process; a hosting platform needs a persistent writable disk.
-- No multi-user or multi-process guarantees on the JSON store.
-- Live AI is optional; all offline tests pass without any credentials.
-- Browser keyboard and narrow-screen checks require manual verification (automated tests cover HTTP routes).
-
-### Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| `Error: Cannot find module` | Run `node --version`; must be ≥ 22 |
-| Port 3000 in use | `PORT=3001 npm run start:web` |
-| `CREW_API_KEY is required` | Set the env var or leave `CREW_MODE` unset (defaults to offline) |
-| Corrupt data file | Back up and inspect the file before repair |
-
-## Workflow
-
-A coordinator passes a request to a triage agent, then a reply agent and an operations agent. All outputs are drafts for human review; nothing is sent to customers.
-
-## Develop with Kiro
-
-Open the repository in Kiro. Read `.kiro/steering/` and start with `.kiro/specs/business-agent-workflow/tasks.md`. Requirements, design, and implementation tasks are tracked together. See https://kiro.dev/docs/specs/.
-
-## Status and roadmap
-
-Starter only: offline orchestration, sample request, and automated checks. Next: structured model adapter, persistence, approval UI, and evaluation. Competition eligibility and submission rules must be independently verified; this repository does not claim compliance or affiliation.
-
-## License
-
-MIT — see LICENSE.
-
-## Expanded starter: two applications
-
-This repository is a reusable small-business workflow skeleton. Two distinct CLI starters share the same coordination runtime:
-
-| Application | Audience | Input → draft output | Command |
-| --- | --- | --- | --- |
-| Support Desk | Online shop owner | Customer question → triage, reply, review checklist | `npm run demo:support` |
-| Job Planner | Local service business | Job request → scope, work plan, customer questions | `npm run demo:planner` |
-
-Both are deterministic offline demonstrations, not live model agents. The two application folders are `apps/support-desk/` and `apps/job-planner/`. Local web interfaces and review APIs exist; persistent web history and live integration are implemented; real-provider validation, browser acceptance checks and deployment remain pending.
-
-```sh
-git clone https://github.com/Tolgahanozkan6/skeleton-crew-ai.git
-cd skeleton-crew-ai
-node --version # Node.js 22+
-npm test
-npm run demo:support
+npm test              # 145 offline tests
+npm run start:web     # http://127.0.0.1:3000 — both apps, offline rules
+npm run demo:support  # CLI demos
 npm run demo:planner
+npm run build:demo    # static public demo → dist/public-demo
 ```
 
-No install step or `.env` copy is required for these dependency-free demos. The existing `npm start` remains available. The web entry point loads optional `.env` settings; CLI demos remain offline.
+### Free local AI (optional)
 
-## Build next
+Install [Ollama](https://ollama.com/download), then:
 
-Read [product scope](docs/product-scope.md), [architecture](docs/architecture.md), [development plan](docs/development-plan.md) and [competition checklist](docs/competition.md). Continue the open integration checks in `.kiro/specs/two-app-mvp/tasks.md`. Existing workflow specs remain valid for the legacy demo.
+```sh
+ollama pull qwen3:1.7b
+npm run start:free    # starts Ollama if needed and switches both apps to live mode
+```
 
-Competition conditions were checked on 2026-11-16; see the linked checklist for sources and remaining eligibility checks. This starter is not a completed submission. File preparation here does not prove that development used Kiro. Record actual Kiro work in [the evidence log](docs/kiro-usage.md).
+Model calls go only to `127.0.0.1:11434`: three calls per run, 120 s per call, no retries. Every model output must pass the same step schema as the rules or the run fails visibly, and it never falls back to rules silently. A small local model makes mistakes, so review every draft. Measured on an Apple M3 with 16 GB RAM: a run took about 40–50 s. Re-measure on your machine.
 
-## Public browser-only demo
+## What's inside
 
-Generate the shareable deterministic version with `node scripts/build-public-demo.mjs`. It reuses the same workflow functions and UI, with a browser-local history/review adapter. Output is in `dist/public-demo/`; host it as static files. It never calls an AI provider. See [release links](docs/release-links.md), [quality checks](docs/quality-checks.md) and [submission draft](docs/submission.md).
+```text
+src/            the skeleton: registry, schema, runtime, live runner, lifecycle, store, server, ui/
+apps/<id>/      one folder per app: workflow.js (steps), manifest.js, fixtures.js, demo.js
+apps/index.js   the registry — one line per app
+scripts/        new-app scaffolder, public-demo build, MCP server, Ollama launcher
+.kiro/          steering, specs, hooks and MCP config used to build this
+test/           node:test suites
+```
+
+- **Business profile:** an optional profile (name, policies, hours, service area) shared by all apps. Drafts sign with your name, checklists cite your policy and plans check your service area.
+- **Human review, enforced:** results are versioned; stale or repeated decisions are rejected (409). Failed runs have no outputs to approve.
+- **Safe by default:** loopback-only server, strict CSP, no inline scripts, cross-origin POSTs blocked, untrusted text rendered as text.
+
+Details: [docs/architecture.md](docs/architecture.md).
+
+## Built with Kiro
+
+`.kiro/` contains the steering files, specs (`app-registry`, `two-app-mvp`, `business-agent-workflow`), hooks (tests on save, manifest guard, keep `.kiro` tracked, *new app from an idea*), and an MCP config that exposes this project's own tools (`list_apps`, `run_workflow`, `validate_output`, `scaffold_app`) to Kiro via `npm run mcp`. What was done in Kiro and what was done with other assistants is recorded honestly in [docs/kiro-usage.md](docs/kiro-usage.md).
+
+## Limits
+
+Single-user local tool: no auth, rate limiting or multi-process storage. The public demo is rules only. Offline rules are keyword-based and English/Turkish only. Approvals record decisions; nothing is sent.
+
+MIT licensed. Ollama and Qwen are third-party software with their own licenses.

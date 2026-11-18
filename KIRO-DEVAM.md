@@ -1,3 +1,5 @@
+> **Güncel değil (17 Kasım 2026):** Bu dosyadaki T3–T7 görevleri tamamlandı. Güncel talimatlar için `KIRO-TALIMATLARI.md` dosyasına bak.
+
 # Skeleton Crew AI — Kesintisiz geliştirme talimatı
 
 Bu dosya Kiro için proje yürütme talimatıdır. Kullanıcı her görev için ayrı mesaj vermeden kalan geliştirme işlerinin sırayla tamamlanmasını istiyor. Mevcut çalışma dosyalarını koru; bu dosya mevcut gereksinim ve tasarımın yerini almaz.
